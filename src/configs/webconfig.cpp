@@ -799,6 +799,12 @@ std::string setLedOptions()
     readDoc(ledOptions.pledIndex3, doc, "pledIndex3");
     readDoc(ledOptions.pledIndex4, doc, "pledIndex4");
     readDoc(ledOptions.pledColor, doc, "pledColor");
+    docToPin(ledOptions.caseLedLeftPinStart, doc, "caseLedLeftPinStart");
+    docToPin(ledOptions.caseLedLeftPinEnd, doc, "caseLedLeftPinEnd");
+    docToPin(ledOptions.caseLedRightPinStart, doc, "caseLedRightPinStart");
+    docToPin(ledOptions.caseLedRightPinEnd, doc, "caseLedRightPinEnd");
+    readDoc(ledOptions.caseLedLeftColor, doc, "caseLedLeftColor");
+    readDoc(ledOptions.caseLedRightColor, doc, "caseLedRightColor");
 
     Storage::getInstance().save(true);
     return serialize_json(doc);
@@ -855,6 +861,12 @@ std::string getLedOptions()
     writeDoc(doc, "pledIndex3", ledOptions.pledIndex3);
     writeDoc(doc, "pledIndex4", ledOptions.pledIndex4);
     writeDoc(doc, "pledColor", ((RGB)ledOptions.pledColor).value(LED_FORMAT_RGB));
+    writeDoc(doc, "caseLedLeftPinStart", ledOptions.caseLedLeftPinStart);
+    writeDoc(doc, "caseLedLeftPinEnd", ledOptions.caseLedLeftPinEnd);
+    writeDoc(doc, "caseLedRightPinStart", ledOptions.caseLedRightPinStart);
+    writeDoc(doc, "caseLedRightPinEnd", ledOptions.caseLedRightPinEnd);
+    writeDoc(doc, "caseLedLeftColor", ((RGB)ledOptions.caseLedLeftColor).value(LED_FORMAT_RGB));
+    writeDoc(doc, "caseLedRightColor", ((RGB)ledOptions.caseLedRightColor).value(LED_FORMAT_RGB));
 
     return serialize_json(doc);
 }

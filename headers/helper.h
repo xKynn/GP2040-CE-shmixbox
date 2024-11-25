@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include "AnimationStation.hpp"
 #include "PlayerLEDs.h"
+#include "CaseLEDs.h"
 
 // GP2040-CE Board Config (64 character limit)
 #ifndef GP2040_BOARDCONFIG
@@ -33,6 +34,24 @@
 #endif
 #ifndef PLED_COLOR
 #define PLED_COLOR ColorWhite // White
+#endif
+#ifndef CASELEDLEFTPINSTART
+#define CASELEDLEFTPINSTART -1
+#endif
+#ifndef CASELEDLEFTPINEND
+#define CASELEDLEFTPINEND -1
+#endif
+#ifndef CASELEDRIGHTPINSTART
+#define CASELEDRIGHTPINSTART -1
+#endif
+#ifndef CASELEDRIGHTPINEND
+#define CASELEDRIGHTPINEND -1
+#endif
+#ifndef CASELEDLEFTCOLOR
+#define CASELEDLEFTCOLOR ColorWhite
+#endif
+#ifndef CASELEDRIGHTCOLOR
+#define CASELEDRIGHTCOLOR ColorWhite
 #endif
 
 static inline bool isValidPin(int32_t pin) {

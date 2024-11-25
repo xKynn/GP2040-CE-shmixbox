@@ -212,6 +212,12 @@ namespace ConfigLegacy
         int pledPin3;
         int pledPin4;
         RGB pledColor;
+        int caseLedRightPinStart;
+        int caseLedRightPinEnd;
+        int caseLedLeftPinStart;
+        int caseLedLeftPinEnd;
+        RGB caseLedRightColor;
+        RGB caseLedLeftColor;
         uint32_t checksum;
     };
 
@@ -899,6 +905,13 @@ bool ConfigUtils::fromLegacyStorage(Config& config)
         SET_PROPERTY(ledOptions, pledPin2, legacyLEDOptions.pledPin2);
         SET_PROPERTY(ledOptions, pledPin3, legacyLEDOptions.pledPin3);
         SET_PROPERTY(ledOptions, pledPin4, legacyLEDOptions.pledPin4);
+        SET_PROPERTY(ledOptions, caseLedRightPinStart, legacyLEDOptions.caseLedRightPinStart);
+        SET_PROPERTY(ledOptions, caseLedRightPinEnd, legacyLEDOptions.caseLedRightPinEnd);
+        SET_PROPERTY(ledOptions, caseLedLeftPinStart, legacyLEDOptions.caseLedLeftPinStart);
+        SET_PROPERTY(ledOptions, caseLedLeftPinEnd, legacyLEDOptions.caseLedLeftPinEnd);
+        SET_PROPERTY(ledOptions, caseLedRightPinEnd, legacyLEDOptions.caseLedRightPinEnd);
+        SET_PROPERTY(ledOptions, caseLedRightColor, legacyLEDOptions.caseLedRightColor.value(LED_FORMAT_RGB));
+        SET_PROPERTY(ledOptions, caseLedLeftColor, legacyLEDOptions.caseLedLeftColor.value(LED_FORMAT_RGB));
         SET_PROPERTY(ledOptions, pledColor, legacyLEDOptions.pledColor.value(LED_FORMAT_RGB));
     }
 

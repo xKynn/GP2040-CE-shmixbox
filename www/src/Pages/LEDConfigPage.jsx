@@ -57,6 +57,12 @@ const defaultValue = {
 	pledIndex2: -1,
 	pledIndex3: -1,
 	pledIndex4: -1,
+	caseLedRightPinStart: -1,
+	caseLedRightPinEnd: -1,
+	caseLedLeftPinStart: -1,
+	caseLedLeftPinEnd: -1,
+	caseLedRightColor: '#00ff00',
+	caseLedLeftColor: '#00ff00',
 	pledColor: '#00ff00',
 	ledButtonMap: {},
 };
@@ -136,6 +142,20 @@ const schema = yup.object().shape({
 		.number()
 		.label('PLED Index 4')
 		.validateMinWhenEqualTo('pledType', 1, 0),
+	caseLedRightPinStart: yup
+		.number()
+		.label('Case LED Right Pin Start'),
+	caseLedRightPinEnd: yup
+		.number()
+		.label('Case LED Right Pin End'),
+	caseLedLeftPinStart: yup
+		.number()
+		.label('Case LED Left Pin Start'),
+	caseLedLeftPinEnd: yup
+		.number()
+		.label('Case LED Left Pin End'),
+	caseLedLeftColor: yup.string().label('Case LED Left Color').validateColor(),
+	caseLedRightColor: yup.string().label('Case LED Right Color').validateColor(),
 	turnOffWhenSuspended: yup.number().label('Turn Off When Suspended'),
 	ledButtonMap: yup.object(),
 });
@@ -272,6 +292,8 @@ export default function LEDConfigPage() {
 		const data = {
 			...values,
 			pledColor: hexToInt(values.pledColor || '#000000'),
+			caseLedRightColor: hexToInt(values.caseLedRightColor || '#000000'),
+			caseLedLeftColor: hexToInt(values.caseLedLeftColor || '#000000')
 		};
 
 		const success = await WebApi.setLedOptions(data);
@@ -644,6 +666,124 @@ export default function LEDConfigPage() {
 									<strong>starts at index {{ rgbLedStartIndex }}</strong>.
 								</Trans>
 							</p>
+						</Form.Group>
+					</Section>
+					<Section title={t('LedConfig:caseLed.header-text')}>
+						<Form.Group as={Col}>
+							<Row>
+								<FormControl
+									type="number"
+									name="caseLedRightPinStart"
+									label={t('LedConfig:caseLed-right-pin-start-label')}
+									className="form-control-sm"
+									groupClassName="col-sm-2 mb-3"
+									value={values.caseLedRightPinStart}
+									error={errors.caseLedRightPinStart}
+									isInvalid={errors.caseLedRightPinStart}
+									onChange={(e) =>
+										setFieldValue('caseLedRightPinStart', parseInt(e.target.value))
+									}
+									min={0}
+								/>
+								<FormControl
+									type="number"
+									name="caseLedRightPinEnd"
+									label={t('LedConfig:caseLed-right-pin-end-label')}
+									className="form-control-sm"
+									groupClassName="col-sm-2 mb-3"
+									value={values.caseLedRightPinEnd}
+									error={errors.caseLedRightPinEnd}
+									isInvalid={errors.caseLedRightPinEnd}
+									onChange={(e) =>
+										setFieldValue('caseLedRightPinEnd', parseInt(e.target.value))
+									}
+									min={0}
+								/>
+								<FormControl
+									type="number"
+									name="caseLedLeftPinStart"
+									label={t('LedConfig:caseLed-left-pin-start-label')}
+									className="form-control-sm"
+									groupClassName="col-sm-2 mb-3"
+									value={values.caseLedLeftPinStart}
+									error={errors.caseLedLeftPinStart}
+									isInvalid={errors.caseLedLeftPinStart}
+									onChange={(e) =>
+										setFieldValue('caseLedLeftPinStart', parseInt(e.target.value))
+									}
+									min={0}
+								/>
+								<FormControl
+									type="number"
+									name="caseLedLeftPinEnd"
+									label={t('LedConfig:caseLed-left-pin-end-label')}
+									className="form-control-sm"
+									groupClassName="col-sm-2 mb-3"
+									value={values.caseLedLeftPinEnd}
+									error={errors.caseLedLeftPinEnd}
+									isInvalid={errors.caseLedLeftPinEnd}
+									onChange={(e) =>
+										setFieldValue('caseLedLeftPinEnd', parseInt(e.target.value))
+									}
+									min={0}
+								/>
+								<FormControl
+									label={t('LedConfig:caseLed-right-color-label')}
+									name="caseLedRightColor"
+									className="form-control-sm"
+									groupClassName="col-sm-2 mb-3"
+									value={values.caseLedRightColor}
+									error={errors.caseLedRightColor}
+									isInvalid={errors.caseLedRightColor}
+									onBlur={handleBlur}
+									onClick={(e) => {toggleRgbPledPicker(e);}}
+									onChange={(e) => {
+										handleChange(e);
+										setShowPicker(false);
+									}}
+								/>
+								<ColorPicker
+									name="caseLedRightColor"
+									types={[{ value: values.caseLedRightColor }]}
+									onChange={(c) => setFieldValue('caseLedRightColor', c)}
+									onDismiss={() => setShowPicker(false)}
+									placement="top"
+									presetColors={LEDColors.map((c) => ({
+										title: c.name,
+										color: c.value,
+									}))}
+									show={showPicker}
+									target={colorPickerTarget}
+								></ColorPicker>
+								<FormControl
+									label={t('LedConfig:caseLed-left-color-label')}
+									name="caseLedLeftColor"
+									className="form-control-sm"
+									groupClassName="col-sm-2 mb-3"
+									value={values.caseLedLeftColor}
+									error={errors.caseLedLeftColor}
+									isInvalid={errors.caseLedLeftColor}
+									onBlur={handleBlur}
+									onClick={(e) => {toggleRgbPledPicker(e);}}
+									onChange={(e) => {
+										handleChange(e);
+										setShowPicker(false);
+									}}
+								/>
+								<ColorPicker
+									name="caseLedLeftColor"
+									types={[{ value: values.caseLedLeftColor }]}
+									onChange={(c) => setFieldValue('caseLedLeftColor', c)}
+									onDismiss={() => setShowPicker(false)}
+									placement="top"
+									presetColors={LEDColors.map((c) => ({
+										title: c.name,
+										color: c.value,
+									}))}
+									show={showPicker}
+									target={colorPickerTarget}
+								></ColorPicker>
+							</Row>
 						</Form.Group>
 					</Section>
 					<Button type="submit">{t('Common:button-save-label')}</Button>

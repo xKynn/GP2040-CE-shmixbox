@@ -288,6 +288,13 @@ message LEDOptions
     optional int32 pledIndex2 = 33;
     optional int32 pledIndex3 = 34;
     optional int32 pledIndex4 = 35;
+
+    optional int32 caseLedRightPinStart = 36;
+    optional int32 caseLedRightPinEnd = 37;
+    optional int32 caseLedLeftPinStart = 38;
+    optional int32 caseLedLeftPinEnd = 39;
+    optional uint32 caseLedRightColor = 40;
+    optional uint32 caseLedLeftColor = 41;
 };
 
 // This has to be kept in sync with AnimationOptions in AnimationStation.hpp

@@ -38,6 +38,7 @@ const std::string BUTTON_LABEL_A2 = "A2";
 static std::vector<uint8_t> EMPTY_VECTOR;
 
 uint32_t rgbPLEDValues[4];
+uint32_t rgbCLEDValues[CLED_COUNT*10];
 
 // Move to Proto Enums
 typedef enum
@@ -210,6 +211,9 @@ void NeoPicoLEDAddon::setup()
 		neoPLEDs = new NeoPicoPlayerLEDs();
 	}
 
+	neoCLEDs = new NeoPicoCaseLEDs();
+	neoCLEDs->setup();
+
 	neopico = nullptr; // set neopico to null
 
 	// Create a dummy Neo Pico for the initial configuration
@@ -252,6 +256,17 @@ void NeoPicoLEDAddon::process()
 		if (neoPLEDs != nullptr && animationState.animation != PLED_ANIM_NONE) {
 			neoPLEDs->animate(animationState);
 		}
+	}
+
+	CLEDAnimationState cLedAnimationState =
+	{
+		.state = (CLED_STATE_LED_RIGHT | CLED_STATE_LED_LEFT),
+		.animation = CLED_ANIM_FADE,
+		.speed = CLED_SPEED_SLOW,
+	};
+
+	if (neoCLEDs != nullptr && animationState.animation != PLED_ANIM_NONE) {
+		neoCLEDs->animate(cLedAnimationState);
 	}
 
 	if ( action != HOTKEY_LEDS_NONE ) {
@@ -301,6 +316,19 @@ void NeoPicoLEDAddon::process()
 			frame[pledIndexes[i]] = rgbPLEDValues[i];
 		}
 	}
+
+	for (int i = 0; i < CLED_COUNT*10; i++){
+		float brightness = as.GetBrightnessX();
+		float brightn = neoCLEDs->getBrightnessX() * brightness;
+		if (i < 10){
+			rgbCLEDValues[i] = ((RGB)ledOptions.caseLedRightColor).value(neopico->GetFormat(), brightn);
+		}
+		else{
+			rgbCLEDValues[i] = ((RGB)ledOptions.caseLedLeftColor).value(neopico->GetFormat(), brightn);
+		}
+		frame[ledOptions.caseLedRightPinStart + i] = rgbCLEDValues[i];
+	}
+	frame[ledOptions.caseLedRightPinStart + 20] = rgbCLEDValues[19];
 
 	neopico->SetFrame(frame);
 	neopico->Show();
@@ -600,6 +628,8 @@ void NeoPicoLEDAddon::configureLEDs()
 	ledCount = matrix.getLedCount();
 	if (ledOptions.pledType == PLED_TYPE_RGB && PLED_COUNT > 0)
 		ledCount += PLED_COUNT;
+    
+    ledCount += CLED_COUNT*10 + 1;
 
 	// Remove the old neopico (config can call this)
 	delete neopico;

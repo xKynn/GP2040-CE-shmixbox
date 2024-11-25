@@ -472,6 +472,13 @@ void ConfigUtils::initUnsetPropertiesWithDefaults(Config& config)
     INIT_UNSET_PROPERTY(config.ledOptions, pledIndex3, PLED3_PIN);
     INIT_UNSET_PROPERTY(config.ledOptions, pledIndex4, PLED4_PIN);
 
+    INIT_UNSET_PROPERTY(config.ledOptions, caseLedRightPinStart, CASELEDRIGHTPINSTART);
+    INIT_UNSET_PROPERTY(config.ledOptions, caseLedRightPinEnd, CASELEDRIGHTPINEND);
+    INIT_UNSET_PROPERTY(config.ledOptions, caseLedLeftPinStart, CASELEDLEFTPINSTART);
+    INIT_UNSET_PROPERTY(config.ledOptions, caseLedLeftPinEnd, CASELEDLEFTPINEND);
+    INIT_UNSET_PROPERTY(config.ledOptions, caseLedRightColor, static_cast<uint32_t>(CASELEDRIGHTCOLOR.r) << 16 | static_cast<uint32_t>(CASELEDRIGHTCOLOR.g) << 8 | static_cast<uint32_t>(CASELEDRIGHTCOLOR.b));
+    INIT_UNSET_PROPERTY(config.ledOptions, caseLedLeftColor, static_cast<uint32_t>(CASELEDLEFTCOLOR.r) << 16 | static_cast<uint32_t>(CASELEDLEFTCOLOR.g) << 8 | static_cast<uint32_t>(CASELEDLEFTCOLOR.b));
+
     // animationOptions
     INIT_UNSET_PROPERTY(config.animationOptions, baseAnimationIndex, LEDS_BASE_ANIMATION_INDEX);
     INIT_UNSET_PROPERTY(config.animationOptions, brightness, LEDS_BRIGHTNESS);

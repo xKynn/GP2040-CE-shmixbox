@@ -20,6 +20,15 @@ export default {
 		'pled-type-rgb': 'RGB',
 		'pled-color-label': 'RGB PLED Color',
 	},
+	caseLed: {
+		'header-text': 'Case LED',
+	},
+	'caseLed-right-pin-start-label': 'CaseLED Right Pin Start',
+	'caseLed-right-pin-end-label': 'CaseLED Right Pin End',
+	'caseLed-left-pin-start-label': 'CaseLED Left Pin Start',
+	'caseLed-left-pin-end-label': 'CaseLED Left Pin End',
+	'caseLed-right-color-label': 'CaseLED Right Color',
+	'caseLed-left-color-label': 'CaseLED Left Color',
 	'pled-pin-label': 'PLED #{{pin}} Pin',
 	'pled-index-label': 'PLED #{{index}} Index',
 	'rgb-order': {

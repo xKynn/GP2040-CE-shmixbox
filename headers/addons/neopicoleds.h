@@ -16,6 +16,7 @@
 #include "gamepad.h"
 #include "gpaddon.h"
 #include "storagemanager.h"
+#include "cleds.h"
 
 // MPGS
 #include "BoardConfig.h"
@@ -168,6 +169,21 @@ public:
 	uint16_t * getLedLevels() { return ledLevels; }
 };
 
+class NeoPicoCaseLEDs : public CaseLEDs
+{
+public:
+	virtual void setup(){
+		for (int i = 0; i < CLED_COUNT*10; i++){
+			ledLevels[i] = CLED_MAX_LEVEL;
+		}
+	}
+	virtual void display(){}
+	uint16_t * getLedLevels() { return ledLevels; }
+	virtual float getBrightnessX(){
+		return brightness / 100.0F;
+	}
+};
+
 #define NeoPicoLEDName "NeoPicoLED"
 
 // NeoPico LED Addon
@@ -180,6 +196,7 @@ public:
 	virtual std::string name() { return NeoPicoLEDName; }
 	void configureLEDs();
 	uint32_t frame[100];
+	uint32_t caseFrame[100];
 private:
 	std::vector<uint8_t> * getLEDPositions(std::string button, std::vector<std::vector<uint8_t>> *positions);
 	std::vector<std::vector<Pixel>> generatedLEDButtons(std::vector<std::vector<uint8_t>> *positions);
@@ -196,6 +213,7 @@ private:
 	InputMode inputMode; // HACK
 	PLEDAnimationState animationState; // NeoPico can control the player LEDs
 	NeoPicoPlayerLEDs * neoPLEDs = nullptr;
+	NeoPicoCaseLEDs * neoCLEDs = nullptr;
 	AnimationStation as;
 	std::map<std::string, int> buttonPositions;
 	bool turnOffWhenSuspended;
