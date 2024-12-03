@@ -799,10 +799,10 @@ std::string setLedOptions()
     readDoc(ledOptions.pledIndex3, doc, "pledIndex3");
     readDoc(ledOptions.pledIndex4, doc, "pledIndex4");
     readDoc(ledOptions.pledColor, doc, "pledColor");
-    docToPin(ledOptions.caseLedLeftPinStart, doc, "caseLedLeftPinStart");
-    docToPin(ledOptions.caseLedLeftPinEnd, doc, "caseLedLeftPinEnd");
-    docToPin(ledOptions.caseLedRightPinStart, doc, "caseLedRightPinStart");
-    docToPin(ledOptions.caseLedRightPinEnd, doc, "caseLedRightPinEnd");
+    readDoc(ledOptions.caseLedLeftPinStart, doc, "caseLedLeftPinStart");
+    readDoc(ledOptions.caseLedLeftPinEnd, doc, "caseLedLeftPinEnd");
+    readDoc(ledOptions.caseLedRightPinStart, doc, "caseLedRightPinStart");
+    readDoc(ledOptions.caseLedRightPinEnd, doc, "caseLedRightPinEnd");
     readDoc(ledOptions.caseLedLeftColor, doc, "caseLedLeftColor");
     readDoc(ledOptions.caseLedRightColor, doc, "caseLedRightColor");
 
