@@ -237,6 +237,9 @@ app.get('/api/getLedOptions', (req, res) => {
 		pledIndex3: 14,
 		pledIndex4: 15,
 		pledColor: 65280,
+		caseLedRightPinStart: 20,
+		caseLedRightColor: 65280,
+		caseLedLeftColor: 65280,
 		turnOffWhenSuspended: 0,
 	});
 });

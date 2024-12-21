@@ -303,7 +303,8 @@ async function getLedOptions(setLoading) {
 		setLoading(false);
 
 		response.data.pledColor = rgbIntToHex(response.data.pledColor) || '#ffffff';
-
+		response.data.caseLedRightColor = rgbIntToHex(response.data.caseLedRightColor) || '#ffffff';
+		response.data.caseLedLeftColor = rgbIntToHex(response.data.caseLedLeftColor) || '#ffffff';
 		return response.data;
 	} catch (error) {
 		setLoading(false);
