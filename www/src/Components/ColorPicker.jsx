@@ -24,6 +24,7 @@ const ColorPicker = ({
 	pickerOnly,
 	placement,
 	show,
+	targetField,
 	target,
 	title,
 	...props
@@ -63,7 +64,7 @@ const ColorPicker = ({
 	};
 
 	const selectColor = (c, e) => {
-		if (onChange) onChange(c.hex, e);
+		if (onChange) onChange(c.hex, e, targetField);
 
 		selectedColorType.value = c.hex;
 
