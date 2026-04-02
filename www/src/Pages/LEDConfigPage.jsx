@@ -627,8 +627,10 @@ export default function LEDConfigPage() {
 									}}
 								/>
 								<ColorPicker
+									key={"pledPicker"}
 									label="pledColorPicker"
 									name="pledColor"
+									targetField={fieldTarget}
 									types={[{ value: values.pledColor }]}
 									onChange={colorPickerOnChange}
 									onDismiss={() => setShowPicker(false)}
@@ -768,7 +770,9 @@ export default function LEDConfigPage() {
 									}}
 								/>
 								<ColorPicker
+									key={"leftPicker"}
 									label="caseLedLeftPicker"
+									targetField={fieldTarget}
 									name="caseLedLeftColor"
 									key={caseLedColorField}
 									types={[{ value: values[caseLedColorField] }]}
