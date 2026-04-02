@@ -98,8 +98,13 @@ void Storage::performEnqueuedSaves()
 	{
 		critical_section_enter_blocking(&animationOptionsCs);
 		updateAnimationOptionsProto(animationOptionsToSave);
-		save();
-		animationOptionsSavePending.store(false);
+		// Hotkey-controlled animation options (brightness / animation pattern) are expected
+		// to persist across reboots. `Storage::save()` can be blocked when USB host is enabled,
+		// so we force the write here to ensure the queued animation settings reach flash/EEPROM.
+		const bool success = save(true);
+		if (success) {
+			animationOptionsSavePending.store(false);
+		}
 		critical_section_exit(&animationOptionsCs);
 	}
 }
