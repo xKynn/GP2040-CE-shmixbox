@@ -55,6 +55,7 @@ public:
 	void performEnqueuedSaves();
 
 	void enqueueAnimationOptionsSave(const AnimationOptions& animationOptions);
+	void enqueueCaseLedPatternSave(uint32_t pattern);
 
 	void SetConfigMode(bool); 			// Config Mode (on-boot)
 	bool GetConfigMode();
@@ -85,6 +86,9 @@ private:
 	critical_section_t animationOptionsCs;
 	uint32_t animationOptionsCrc = 0;
 	AnimationOptions animationOptionsToSave = {};
+
+	std::atomic<bool> caseLedPatternSavePending;
+	uint32_t caseLedPatternToSave = 0;
 	GpioMappingInfo functionalPinMappings[NUM_BANK0_GPIOS];
 };
 

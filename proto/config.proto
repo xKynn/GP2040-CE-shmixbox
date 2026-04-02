@@ -295,6 +295,10 @@ message LEDOptions
     optional int32 caseLedLeftPinEnd = 39;
     optional uint32 caseLedRightColor = 40;
     optional uint32 caseLedLeftColor = 41;
+
+    // Case LED pattern selection (cycled via controller hotkey).
+    // 0=Breathing, 1=Scanning, 2=Wave, 3=SpectrumWave, 4=Solid
+    optional uint32 caseLedPattern = 42;
 };
 
 // This has to be kept in sync with AnimationOptions in AnimationStation.hpp

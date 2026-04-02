@@ -19,6 +19,8 @@
 void Storage::init() {
 	EEPROM.start();
 	critical_section_init(&animationOptionsCs);
+	animationOptionsSavePending.store(false);
+	caseLedPatternSavePending.store(false);
 	ConfigUtils::load(config);
 }
 
@@ -94,6 +96,17 @@ static void updateAnimationOptionsProto(const AnimationOptions& options)
 
 void Storage::performEnqueuedSaves()
 {
+	// Core1 -> Core0 marshalled save for case LED pattern selection.
+	if (caseLedPatternSavePending.load())
+	{
+		LEDOptions& ledOptions = Storage::getInstance().getLedOptions();
+		ledOptions.caseLedPattern = caseLedPatternToSave;
+		const bool success = save(true);
+		if (success) {
+			caseLedPatternSavePending.store(false);
+		}
+	}
+
 	if (animationOptionsSavePending.load())
 	{
 		critical_section_enter_blocking(&animationOptionsCs);
@@ -107,6 +120,12 @@ void Storage::performEnqueuedSaves()
 		}
 		critical_section_exit(&animationOptionsCs);
 	}
+}
+
+void Storage::enqueueCaseLedPatternSave(uint32_t pattern)
+{
+	caseLedPatternToSave = pattern;
+	caseLedPatternSavePending.store(true);
 }
 
 void Storage::enqueueAnimationOptionsSave(const AnimationOptions& animationOptions)

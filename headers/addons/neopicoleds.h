@@ -217,6 +217,35 @@ private:
 	AnimationStation as;
 	std::map<std::string, int> buttonPositions;
 	bool turnOffWhenSuspended;
+
+	// Case LED pattern engine (left/right side strips only).
+	// These patterns should not affect the player LED animations.
+	enum class CaseLEDPattern : uint8_t
+	{
+		Breathing = 0,
+		Scanning,
+		Wave,
+		SpectrumWave,
+		Solid,
+	};
+
+	CaseLEDPattern caseLedPattern = CaseLEDPattern::Breathing;
+
+	// Breathing state (triangular brightness).
+	absolute_time_t caseBreathNextStep = nil_time;
+	uint8_t caseBreathBrightness = 5; // percent of CLED_MAX_BRIGHTNESS
+	bool caseBreathIncreasing = true;
+
+	// Scanning state (single lit LED moving left->right across 20 LEDs).
+	absolute_time_t casePatternNextStep = nil_time;
+	uint8_t caseScanPos = 0; // 0..19 in physical left->right order
+
+	// Wave state (progressive fill then progressive empty).
+	uint8_t caseWaveLevel = 0; // 0..20 (# of LEDs that should be ON from left->right)
+	bool caseWaveIncreasing = true;
+
+	// Spectrum wave state (rainbow offset).
+	uint8_t caseSpectrumOffset = 0;
 };
 
 #endif

@@ -221,16 +221,72 @@ void NeoPicoLEDAddon::setup()
 	configureLEDs();
 
 	nextRunTime = make_timeout_time_ms(0); // Reset timeout
+
+	// Initialize case LED pattern state
+	// Load persisted pattern selection (default is 0 = Breathing).
+	const uint8_t persistedPattern = static_cast<uint8_t>(ledOptions.caseLedPattern);
+	const uint8_t patternCount = 5;
+	caseLedPattern = static_cast<CaseLEDPattern>(persistedPattern % patternCount);
+
+	caseBreathNextStep = make_timeout_time_ms(50);
+	caseBreathBrightness = 5;
+	caseBreathIncreasing = true;
+
+	casePatternNextStep = make_timeout_time_ms(60);
+	caseScanPos = 0;
+
+	caseWaveLevel = 0;
+	caseWaveIncreasing = true;
+	caseSpectrumOffset = 0;
 }
 
 void NeoPicoLEDAddon::process()
 {
-	const LEDOptions& ledOptions = Storage::getInstance().getLedOptions();
+	LEDOptions& ledOptions = Storage::getInstance().getLedOptions();
 	if (!isValidPin(ledOptions.dataPin) || !time_reached(this->nextRunTime))
 		return;
 
 	Gamepad * gamepad = Storage::getInstance().GetProcessedGamepad();
 	AnimationHotkey action = animationHotkeys(gamepad);
+
+	// Case LED pattern hotkey combo:
+	// Hold `S1 + S2`, then press `A1` to cycle through case LED patterns.
+	// (We also clear the used buttons so they don't affect player LED hotkeys/pixels.)
+	if (gamepad->pressedS1() && gamepad->pressedS2() && gamepad->pressedA1()) {
+		const uint8_t patternCount = 5;
+		const uint8_t nextPattern =
+			(static_cast<uint8_t>(caseLedPattern) + 1) % patternCount;
+
+		caseLedPattern = static_cast<CaseLEDPattern>(nextPattern);
+		ledOptions.caseLedPattern = nextPattern;
+		// NeoPicoLEDAddon runs on core1; saving must be marshalled to core0.
+		Storage::getInstance().enqueueCaseLedPatternSave(nextPattern);
+		switch (caseLedPattern) {
+			case CaseLEDPattern::Breathing:
+				caseBreathNextStep = make_timeout_time_ms(50);
+				caseBreathBrightness = 5;
+				caseBreathIncreasing = true;
+				break;
+			case CaseLEDPattern::Scanning:
+				casePatternNextStep = make_timeout_time_ms(60);
+				caseScanPos = 0;
+				break;
+			case CaseLEDPattern::Wave:
+			case CaseLEDPattern::SpectrumWave:
+				casePatternNextStep = make_timeout_time_ms(0);
+				caseWaveLevel = 0;
+				caseWaveIncreasing = true;
+				caseSpectrumOffset = 0;
+				break;
+			case CaseLEDPattern::Solid:
+			default:
+				// No per-pattern phase required.
+				break;
+		}
+
+		gamepad->state.buttons &= ~(GAMEPAD_MASK_A1 | GAMEPAD_MASK_S1 | GAMEPAD_MASK_S2);
+	}
+
 	if (ledOptions.pledType == PLED_TYPE_RGB) {
 		inputMode = gamepad->getOptions().inputMode; // HACK
 		if (gamepad->auxState.playerID.enabled && gamepad->auxState.playerID.active) {
@@ -256,17 +312,6 @@ void NeoPicoLEDAddon::process()
 		if (neoPLEDs != nullptr && animationState.animation != PLED_ANIM_NONE) {
 			neoPLEDs->animate(animationState);
 		}
-	}
-
-	CLEDAnimationState cLedAnimationState =
-	{
-		.state = (CLED_STATE_LED_RIGHT | CLED_STATE_LED_LEFT),
-		.animation = CLED_ANIM_FADE,
-		.speed = CLED_SPEED_SLOW,
-	};
-
-	if (neoCLEDs != nullptr && animationState.animation != PLED_ANIM_NONE) {
-		neoCLEDs->animate(cLedAnimationState);
 	}
 
 	if ( action != HOTKEY_LEDS_NONE ) {
@@ -317,18 +362,140 @@ void NeoPicoLEDAddon::process()
 		}
 	}
 
-	for (int i = 0; i < CLED_COUNT*10; i++){
-		float brightness = as.GetBrightnessX();
-		float brightn = neoCLEDs->getBrightnessX() * brightness;
-		if (i < 10){
-			rgbCLEDValues[i] = ((RGB)ledOptions.caseLedRightColor).value(neopico->GetFormat(), brightn);
+	// ------------------------------------------------------------
+	// Case LEDs pattern engine (left/right strips only)
+	// ------------------------------------------------------------
+	constexpr uint32_t CASE_PATTERN_STEP_MS = 60;
+	constexpr uint32_t CASE_BREATH_STEP_MS = 50;
+
+	// Global brightness is still controlled by the player LED brightness hotkeys.
+	const float globalBrightness = as.GetBrightnessX();
+
+	// Update per-pattern phase.
+	switch (caseLedPattern) {
+		case CaseLEDPattern::Breathing:
+			if (time_reached(caseBreathNextStep)) {
+				// Triangular brightness modulation.
+				constexpr uint8_t BREATH_MIN = 5;
+				constexpr uint8_t BREATH_MAX = 100;
+				constexpr uint8_t BREATH_STEP = 5;
+
+				if (caseBreathIncreasing) {
+					caseBreathBrightness = std::min<uint8_t>(BREATH_MAX, caseBreathBrightness + BREATH_STEP);
+					if (caseBreathBrightness >= BREATH_MAX) {
+						caseBreathIncreasing = false;
+					}
+				} else {
+					caseBreathBrightness = (caseBreathBrightness > BREATH_MIN) ? (caseBreathBrightness - BREATH_STEP) : BREATH_MIN;
+					if (caseBreathBrightness <= BREATH_MIN) {
+						caseBreathIncreasing = true;
+					}
+				}
+
+				caseBreathNextStep = make_timeout_time_ms(CASE_BREATH_STEP_MS);
+			}
+			break;
+
+		case CaseLEDPattern::Scanning:
+			if (time_reached(casePatternNextStep)) {
+				caseScanPos = (caseScanPos + 1) % (CLED_COUNT * 10);
+				casePatternNextStep = make_timeout_time_ms(CASE_PATTERN_STEP_MS);
+			}
+			break;
+
+		case CaseLEDPattern::Wave:
+		case CaseLEDPattern::SpectrumWave:
+			if (time_reached(casePatternNextStep)) {
+				// Wave: progressive fill then progressive empty.
+				// waveLevel is "how many LEDs from physical left->right are ON".
+				const int waveMax = (CLED_COUNT * 10);
+				if (caseWaveIncreasing) {
+					caseWaveLevel = (caseWaveLevel < waveMax) ? (caseWaveLevel + 1) : waveMax;
+					if (caseWaveLevel >= waveMax) {
+						caseWaveIncreasing = false;
+					}
+				} else {
+					caseWaveLevel = (caseWaveLevel > 0) ? (caseWaveLevel - 1) : 0;
+					if (caseWaveLevel <= 0) {
+						caseWaveIncreasing = true;
+					}
+				}
+
+				// Add a subtle color motion for RGB spectrum wave.
+				if (caseLedPattern == CaseLEDPattern::SpectrumWave) {
+					caseSpectrumOffset = static_cast<uint8_t>(caseSpectrumOffset + 6);
+				}
+
+				casePatternNextStep = make_timeout_time_ms(CASE_PATTERN_STEP_MS);
+			}
+			break;
+
+		case CaseLEDPattern::Solid:
+		default:
+			// No phase needed.
+			break;
+	}
+
+	const float caseBreathFactor = (caseLedPattern == CaseLEDPattern::Breathing)
+		? (static_cast<float>(caseBreathBrightness) / 100.0F)
+		: 1.0F;
+
+	for (int i = 0; i < CLED_COUNT * 10; i++) {
+		// Map frame LED index -> physical position left->right across both strips.
+		// Frame indices: 0..9 = right strip, 10..19 = left strip.
+		// Physical order we want: left strip first, then right strip.
+		const int physicalPos = (i >= 10) ? (i - 10) : (i + 10); // 0..19
+
+		bool isOn = false;
+		switch (caseLedPattern) {
+			case CaseLEDPattern::Breathing:
+			case CaseLEDPattern::Solid:
+				isOn = true;
+				break;
+			case CaseLEDPattern::Scanning:
+				isOn = (physicalPos == caseScanPos);
+				break;
+			case CaseLEDPattern::Wave:
+			case CaseLEDPattern::SpectrumWave:
+				// Wave semantics:
+				// - Increasing: light up from left -> right (0 .. waveLevel-1 are ON)
+				// - Decreasing: turn off from left -> right (keep rightmost LEDs ON)
+				//   Achieved by shifting the "on" window to the right as waveLevel decreases.
+				if (caseWaveIncreasing) {
+					isOn = (physicalPos < static_cast<int>(caseWaveLevel));
+				} else {
+					const int waveMax = (CLED_COUNT * 10);
+					const int threshold = waveMax - static_cast<int>(caseWaveLevel);
+					isOn = (physicalPos >= threshold);
+				}
+				break;
 		}
-		else{
-			rgbCLEDValues[i] = ((RGB)ledOptions.caseLedLeftColor).value(neopico->GetFormat(), brightn);
+
+		const float ledBrightness = globalBrightness * caseBreathFactor * (isOn ? 1.0F : 0.0F);
+
+		if (!isOn || ledBrightness <= 0.0F) {
+			frame[ledOptions.caseLedRightPinStart + i] = 0;
+			continue;
 		}
+
+		RGB ledColor;
+		if (caseLedPattern == CaseLEDPattern::SpectrumWave) {
+			// Rainbow spectrum wave, ignoring webapp configured case colors.
+			// Wheel expects 0..255.
+			const uint8_t wheelPos = static_cast<uint8_t>((physicalPos * 12 + caseSpectrumOffset) & 0xFF);
+			ledColor = RGB::wheel(wheelPos);
+		} else {
+			// Respect webapp configured case colors.
+			if (i < 10) ledColor = (RGB)ledOptions.caseLedRightColor;
+			else ledColor = (RGB)ledOptions.caseLedLeftColor;
+		}
+
+		rgbCLEDValues[i] = ledColor.value(neopico->GetFormat(), ledBrightness);
 		frame[ledOptions.caseLedRightPinStart + i] = rgbCLEDValues[i];
 	}
-	frame[ledOptions.caseLedRightPinStart + 20] = rgbCLEDValues[19];
+
+	// Neopico LED count includes one extra element; keep it consistent with the previous implementation.
+	frame[ledOptions.caseLedRightPinStart + 20] = frame[ledOptions.caseLedRightPinStart + 19];
 
 	neopico->SetFrame(frame);
 	neopico->Show();
