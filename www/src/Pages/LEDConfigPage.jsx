@@ -248,6 +248,8 @@ export default function LEDConfigPage() {
 	const [saveMessage, setSaveMessage] = useState('');
 	const [dataSources, setDataSources] = useState([[], []]);
 	const [colorPickerTarget, setColorPickerTarget] = useState(null);
+	const [colorPickerOnChange, setColorPickerOnChange] = useState(null);
+	const [caseLedColorField, setCaseLedColorField] = useState('caseLedLeftColor');
 	const [showPicker, setShowPicker] = useState(false);
 	const [rgbLedStartIndex, setRgbLedStartIndex] = useState(0);
 
@@ -282,9 +284,10 @@ export default function LEDConfigPage() {
 		handleChange(e);
 	};
 
-	const toggleRgbPledPicker = (e) => {
+	const toggleRgbPledPicker = (e, val) => {
 		e.stopPropagation();
 		setColorPickerTarget(e.target);
+		setColorPickerOnChange(val);
 		setShowPicker(!showPicker);
 	};
 
@@ -617,7 +620,7 @@ export default function LEDConfigPage() {
 									error={errors.pledColor}
 									isInvalid={errors.pledColor}
 									onBlur={handleBlur}
-									onClick={(e) => toggleRgbPledPicker(e)}
+									onClick={(e) => toggleRgbPledPicker(e, 'pledColor')}
 									onChange={(e) => {
 										handleChange(e);
 										setShowPicker(false);
@@ -627,7 +630,7 @@ export default function LEDConfigPage() {
 									label="pledColorPicker"
 									name="pledColor"
 									types={[{ value: values.pledColor }]}
-									onChange={(c) => setFieldValue('pledColor', c)}
+									onChange={colorPickerOnChange}
 									onDismiss={() => setShowPicker(false)}
 									placement="top"
 									presetColors={LEDColors.map((c) => ({
@@ -737,26 +740,15 @@ export default function LEDConfigPage() {
 									error={errors.caseLedRightColor}
 									isInvalid={errors.caseLedRightColor}
 									onBlur={handleBlur}
-									onClick={(e) => toggleRgbPledPicker(e)}
+									onClick={(e) => {
+										setCaseLedColorField('caseLedRightColor');
+										toggleRgbPledPicker(e);
+									}}
 									onChange={(e) => {
 										handleChange(e);
 										setShowPicker(false);
 									}}
 								/>
-								<ColorPicker
-									label="caseLedRightPicker"
-									name="caseLedRightColor"
-									types={[{ value: values.caseLedRightColor }]}
-									onChange={(c, e) => {setFieldValue('caseLedRightColor', c);console.log(e.target)}}
-									onDismiss={() => setShowPicker(false)}
-									placement="top"
-									presetColors={LEDColors.map((c) => ({
-										title: c.name,
-										color: c.value,
-									}))}
-									show={showPicker}
-									target={colorPickerTarget}
-								></ColorPicker>
 								<FormControl
 									label={t('LedConfig:caseLed-left-color-label')}
 									name="caseLedLeftColor"
@@ -766,7 +758,10 @@ export default function LEDConfigPage() {
 									error={errors.caseLedLeftColor}
 									isInvalid={errors.caseLedLeftColor}
 									onBlur={handleBlur}
-									onClick={(e) => toggleRgbPledPicker(e)}
+									onClick={(e) => {
+										setCaseLedColorField('caseLedLeftColor');
+										toggleRgbPledPicker(e);
+									}}
 									onChange={(e) => {
 										handleChange(e);
 										setShowPicker(false);
@@ -775,8 +770,9 @@ export default function LEDConfigPage() {
 								<ColorPicker
 									label="caseLedLeftPicker"
 									name="caseLedLeftColor"
-									types={[{ value: values.caseLedLeftColor }]}
-									onChange={(c) => setFieldValue('caseLedLeftColor', c)}
+									key={caseLedColorField}
+									types={[{ value: values[caseLedColorField] }]}
+									onChange={(c) => setFieldValue(caseLedColorField, c)}
 									onDismiss={() => setShowPicker(false)}
 									placement="top"
 									presetColors={LEDColors.map((c) => ({
